@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\UserRequest;
 use App\Http\Resources\ProductResource;
 use App\Http\Resources\UserResource;
-use App\Http\Resources\UserCollection;
+use App\Http\Resources\UserResourceCollection;
 use App\Product;
 use App\User;
 use Illuminate\Http\JsonResponse;
@@ -20,12 +20,11 @@ class UserController extends Controller
      * @param  IndexRequest  $request
      * @return JsonResponse
      */
-    public function index(UserRequest $request, User $user)//: JsonResponse
+    public function index(UserRequest $request): JsonResponse
     {
-        $this->authorize('getSearchList', $user);
-        //return response()->json(UserCollection::make($user));
-        //return $this->success(UserCollection::make($user));
-        return new UserCollection(User::getSearchList($request));
+        $this->authorize('getSearchList', User::class);        
+
+        return $this->success(new UserResourceCollection(User::getSearchList($request)));
     }
 
     /**
@@ -36,8 +35,7 @@ class UserController extends Controller
      */
     public function show(User $user): JsonResponse
     {
-        //return $this->success(UserResource::make($user));
-        return response()->json(UserResource::make($user));
+        return $this->success(UserResource::make($user));
     }
 
     /**
@@ -47,16 +45,12 @@ class UserController extends Controller
      * @return JsonResponse
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function update(UserRequest $request /*, User $user*/): JsonResponse
+    public function update(UserRequest $request): JsonResponse
     {
         $user = Auth::guard('api')->user();
-
         $user->update($request->validated());
 
-
-        return response()->json(UserResource::make($user));
-
-        //return $this->success(UserResource::make($user));
+        return $this->success(UserResource::make($user));
     }
 
     /**
@@ -69,8 +63,8 @@ class UserController extends Controller
     public function profile(): JsonResponse
     {
         $user = Auth::guard('api')->user();
-        return response()->json(UserResource::make($user));
-        //return $this->success(UserResource::make($user));
+
+        return $this->success(UserResource::make($user));
     }
 
     /**
@@ -81,11 +75,9 @@ class UserController extends Controller
     public function history(): JsonResponse
     {
         $user_id = Auth::guard('api')->id();
-
         $products = User::with('products')->find($user_id)->products;
 
-        return response()->json(ProductResource::collection($products));
-//        return $this->success(ProductResource::collection($products));
+        return $this->success(ProductResource::collection($products));
     }
 
     /**
@@ -101,7 +93,8 @@ class UserController extends Controller
 
         $product->users()->detach($user_id);
 
-        return response()->json(['success' => true], 200);
+        return $this->succsessDeleted();
+
     }
 
     /**
@@ -121,6 +114,7 @@ class UserController extends Controller
             $product->users()->detach($user_id);
         }
 
-        return response()->json(['success' => true], 200);
+        return $this->succsessDeleted();
+
     }
 }

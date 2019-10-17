@@ -15,15 +15,13 @@ class CategoryResource extends JsonResource
     public function toArray($request)
     {
         return 
-        [//"message": "Uncaught Exception: Property [id] does not exist on this collection instance.
-
-            'id' => $this->id,
+        [
+            'id' => (string)$this->id,
             'title' => $this->title,
-            'parent_id' => $this->subCategories->id,
+            'parent_id' => $this->category->id ?? null,
             'updated_at' => $this->updated_at->toDateTimeString(),
             'products' => $this->products,
-            'sub_categories' =>$this->subCategories//category->title//,subCategories
+            'sub_categories' => $this->subCategories
         ];
-        //parent::toArray($request);
     }
 }

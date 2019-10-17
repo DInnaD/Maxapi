@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CommentRequest;
 use App\Http\Resources\CommentResource;
-use App\Http\Resources\CommentCollection;
+use App\Http\Resources\CommentResourceCollection;
 use App\Comment;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Response;
@@ -22,11 +22,10 @@ class CommentController extends Controller
     public function index(): JsonResponse
     {
         $this->authorize('viewAny', Comment::class);
+        $comments = Comment::orderBy('created_at', 'desc')->get();
 
-        $comment = Comment::orderBy('created_at', 'desc')->get();
 
-        //return $this->success(CommentResourceCollection::make($comment));
-        return responce()->json(CommentResourceCollection::make($comment));
+        return $this->success(CommentResourceCollection::make($comments));
     }
 
     /**
@@ -67,7 +66,6 @@ class CommentController extends Controller
     public function update(CommentRequest $request, Comment $comment): JsonResponse
     {
         $this->authorize('update', $comment);
-
         $comment->update($request->validated());
 
         return $this->success(CommentResource::make($comment));
@@ -83,11 +81,8 @@ class CommentController extends Controller
     public function destroy(Comment $comment): JsonResponse
     {
         $this->authorize('delete', $comment);
-
         $comment->delete();
 
-        return response()->json(['success' => true], 200);
-
-        //return $this->success(CommentResource::make($comment));
+        return $this->successDeleted();
     }
 }

@@ -5,6 +5,7 @@ namespace App;
 use Hash;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -92,6 +93,11 @@ class User extends Authenticatable implements JWTSubject
     
     /******* Relations *******/
 
+    public function comments(): BelongsTo
+    {
+        return $this->hasMany('App\Comment');//not use
+    }
+
     public function products(): BelongsToMany
     {
         return $this->belongsToMany('App\Product', 'user_product');
@@ -112,10 +118,9 @@ class User extends Authenticatable implements JWTSubject
     /**
      * @return bool
      */
-    public function isAdmin(): bool//    "message": "Maximum function nesting level of '256' reached, aborting!",
+    public function isAdmin(): bool
     {
-        return $this->isAdmin()
-            || $this->role === self::ADMIN;
+        return $this->role === self::ADMIN;
     }
 
     /**
@@ -123,84 +128,17 @@ class User extends Authenticatable implements JWTSubject
      */
     public function isUser(): bool
     {
-        return $this->isAdmin()
-            || $this->role === self::USER;
+        return $this->role === self::USER;
     }
 
     /******* CRUD *******/
-
-    public function getImageUrl($image): string
-    {
-        return url('static/avatars/'.$image);
-    }
-
-    public static function add($fields)
-    {
-        $user = new static;
-        $user->fill($fields);
-        $user->save();
-
-        return $user;
-    }
-
-    public function edit($fields)
-    {
-        $this->fill($fields);
-
-        $this->save();
-    }
-
-    public function generatePassword($password)
-    {
-        if($password != null)
-        {
-            $this->password = Hash::make($password);
-            $this->save();
-        }
-    }
+    
     public function generateToken()
     {
         $this->api_token = Str::random(60);
         $this->save();
         return $this->api_token;
     }
-
-    public function remove()
-    {
-        $this->removeAvatar();
-        $this->delete();
-    }
-
-    public function uploadAvatar($image)
-    {
-        if($image == null) { return; }
-
-        $this->removeAvatar();
-
-        $filename = str_random(10) . '.' . $image->extension();
-        $image->storeAs('uploads', $filename);
-        $this->image = $filename;
-        $this->save();
-    }
-
-    public function removeAvatar()
-    {
-        if($this->image != null)
-        {
-            Storage::delete('uploads/' . $this->avatar);
-        }
-    }
-
-    public function getImage()
-    {
-        if($this->image == null)
-        {
-            return '/img/no-image.png';
-        }
-
-        return '/uploads/' . $this->image;
-    }
-
 
     /******* CRUD *******/
      

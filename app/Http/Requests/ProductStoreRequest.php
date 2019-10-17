@@ -22,7 +22,7 @@ class ProductStoreRequest extends FormRequest
      * @return array
      */
     public function rules()
-    {
+    {//del com fild!!!!!!!!!!!!1
         return [
             'product.name' => 'required|string|max:40',
             'product.description' => 'required|string|max:5000',

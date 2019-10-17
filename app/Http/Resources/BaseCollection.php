@@ -11,14 +11,7 @@ class BaseCollection extends ResourceCollection
      *
      * @var array
      */
-    protected $meta;
-
-    /**
-     * Pagination links.
-     *
-     * @var array
-     */
-    protected $links;
+    protected $meta; 
 
     /**
      * Transform the resource collection into an array.
@@ -28,13 +21,6 @@ class BaseCollection extends ResourceCollection
      */
     public function toArray($request)
     {
-        $this->links = [
-            'first' => $this->url(1),
-            'last' => $this->url($this->lastPage()),
-            'prev' => $this->previousPageUrl(),
-            'next' => $this->nextPageUrl()
-        ];
-
         $this->meta = [
             'count' => $this->count(),
             'current_page' => $this->currentPage(),
@@ -47,7 +33,6 @@ class BaseCollection extends ResourceCollection
 
         return [
             'collection' => $this->collection,
-            'links' => $this->links,
             'meta' => $this->meta
         ];
 

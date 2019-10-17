@@ -7,9 +7,11 @@ use Auth;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Illuminate\Http\Request;
-use App\Http\Requests\UserRequest;
+use App\Http\Requests\ProfileUpdateRequest;
 use App\Http\Controllers\Controller;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class ProfileController extends Controller
 {
@@ -20,10 +22,11 @@ class ProfileController extends Controller
      * @param  IndexRequest  $request
      * @return JsonResponse
      */
-    public function index()
+    public function index(): JsonResponse
     {
         $user = Auth::user();
-        return new UserResource($user);
+
+        return $this->success(UserResource::make($user));
     }
 
     /**
@@ -32,26 +35,28 @@ class ProfileController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(UserRequest $request)
+    public function update(ProfileUpdateRequest $request, User $user): JsonResponse
     {
-        $this->validate($request, [
-            'name'	=>	'required',
-            'email' =>  [
-                'required',
-                'email',
-                Rule::unique('users')->ignore(Auth::user()->id),
-            ],
-            'image'	=>	'nullable|image'
-        ]);
+        $user = Auth::guard('api')->user();
+        $data = $request->validated();
+        $user->update($request->except('password', 'role'), $data);
 
-        $user = Auth::user();
-        $user->edit($request->all());
-        $user->generatePassword($request->get('password'));
-        $user->uploadAvatar($request->file('avatar'));
+        return $this->success(UserResource::make($user));
 
-        return new UserResource($user);
 
     }
+    
+    public function updatePassword(UpdateUserPasswordRequest $request): JsonResponse
+    {
+        $currentUser = \Auth::user()->id();
+        if (Hash::check($request->get('password'), $currentUser->password)) {
+            $currentUser->update(['password' => Hash::make($request->get('new_password'))]);
+            return response()->json(['success' => true, 'message' => 'Password updated']);
+        }
+
+        return response()->json(['success' => false, 'error' => 'Old password is incorrect']);
+    }
+
 
 
     /**
@@ -60,10 +65,11 @@ class ProfileController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-    {
+    public function destroy(User $user): JsonResponse
+    {     
+        $this->authorize('delete', $user);
         $user->delete();
 
-        return response()->json(['success' => true], 200);
+        return $this->successDeleted();
     }
 }

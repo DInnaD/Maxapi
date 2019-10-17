@@ -31,36 +31,20 @@ class ProductService
      * @return LengthAwarePaginator
      */
     public function filter(array $data): LengthAwarePaginator
-    {//categories??????????????????????????????????/
-        $search = (isset($data['search']))? $data['search']: '';
-        $category_id = $data['category'];
+    {      
+        $search = (isset($data['search'])) ? $data['search'] : '';
+        $categories_id = (isset($data['categories'][0])) ? $data['categories'] : null;
 
         return Product::where('name', 'like', "%{$search}%")
-            ->whereHas('category', function ($query) use ($category_id) {
-                if (isset($category_id)) $query->whereIn('id', $category_id);
+            ->whereHas('category', function ($query) use ($categories_id) {
+                if (isset($categories_id)) $query->whereIn('id', $categories_id);
             })
             ->withCount('comments as count_comments')
             ->orderBy('created_at', 'desc')
-            ->paginate();
-
-        return new ProductCollection(Product::make($product));    
+            ->paginate();    
+   
     }
-
-    // public function filter(array $data): LengthAwarePaginator
-    // {
-    //     $search = (isset($data['search']))? $data['search']: '';
-    //     $product_id = $data['products'];
-
-    //     return Category::where('title', 'like', "%{$search}%")
-    //         ->whereHas('product', function ($query) use ($product_id) {
-    //             if (isset($product_id)) $query->whereIn('id', $product_id);
-    //         })
-    //         ->withCount('comments as count_comments')
-    //         ->orderBy('created_at', 'desc')
-    //         ->paginate();
-
-    //     return new ProductCollection(Product::make($product));    
-    // }
+   
 
     /**
      * @param  array  $data
@@ -141,3 +125,9 @@ class ProductService
         return $model;
     }
 }
+
+
+   
+
+
+ 

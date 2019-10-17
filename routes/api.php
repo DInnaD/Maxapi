@@ -13,10 +13,6 @@ use Symfony\Component\HttpFoundation\Response;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-	    return $request->user();
-	});
-
 
 /***REGISTRATION***/
 Route::post('register', 'Auth\RegisterController@register');
@@ -47,9 +43,13 @@ Route::middleware('auth:api')->group(function () {
 	/*** END - USER ***/
 
 	/*** PROFILE ***/
-    Route::apiResource('profile', 'ProfileController')->except(['show', 'update']);
+
+
+    Route::post('user/update/pass', 'UserController@updatePassword');
+
+    Route::apiResource('profile', 'ProfileController')->except(['show', 'store']);
     // Route::get('profile', 'ProfileController@index');
-    // Route::get('profile/store', 'ProfileController@store');
+    // Route::get('profile/update', 'ProfileController@update');
     // Route::get('profile/delete', 'ProfileController@destroy');
 	/*** END - PROFILE ***/
 
@@ -57,8 +57,8 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('category', 'CategoryController');
 	/*** END - CATEGORY ***/
 
-    /*** PRODUCT ***/
-    Route::get('products', 'ProductController@filter');//products/?filter
+    /*** PRODUCT ***/    
+    Route::get('products/filter', 'ProductController@filter');//products/?filter
 
     Route::apiResource('product', 'ProductController');
     /*** END - PRODUCT ***/

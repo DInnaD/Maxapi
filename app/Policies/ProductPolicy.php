@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\User;
+use App\Product;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class ProductPolicy
@@ -26,7 +27,7 @@ class ProductPolicy
      * @param Product $product
      * @return mixed
      */
-    public function view(User $user, Product $product)
+    public function view(User $user)
     {
         return true;
     }
@@ -37,7 +38,7 @@ class ProductPolicy
      * @param User $user
      * @return mixed
      */
-    public function create(User $user)
+    public function store(User $user)
     {
         return $user->isUser();
     }
@@ -51,10 +52,10 @@ class ProductPolicy
      */
     public function update(User $user, Product $product)
     {
-        return $product->user_id === $user->id;
+        return $product->user_id === \Auth::user()->id;//$user->id;
     }
 
-    public function delete(User $user, Product $product)
+    public function delete(User $user)
     {
         return $user->isAdmin();
     }

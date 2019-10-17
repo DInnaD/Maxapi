@@ -8,9 +8,10 @@ use App\Http\Requests\ProductSearchRequest;
 use App\Http\Requests\ProductStoreRequest;
 use App\Http\Requests\ProductUpdateRequest;
 use App\Http\Resources\ProductResource;
-use App\Http\Resources\ProductCollection;
+use App\Http\Resources\ProductResourceCollection;
 use App\Services\ProductService;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Response;
 
 class ProductController extends Controller
 {
@@ -18,6 +19,7 @@ class ProductController extends Controller
 
     public function __construct(ProductService $service)
     {
+        //parent::__construct();
         $this->service = $service;
     }
 
@@ -30,9 +32,7 @@ class ProductController extends Controller
     {
         $products = $this->service->index();
 
-        return response()->json(ProductResource::collection($products));
-        //return new ProductCollection(Product::make($products));
-        //return $this->success(ProductCollection::make($products));
+        return $this->success(ProductResourceCollection::make($products));
     }
 
     /**
@@ -43,10 +43,24 @@ class ProductController extends Controller
      */
     public function filter(ProductSearchRequest $request): JsonResponse
     {
+
         $product = $this->service->filter($request->validated());
 
-        return response()->json(ProductCollection::make($product));
-        //return $this->success(ProductCollection::make($product));
+        return $this->success(ProductResourceCollection::make($product));
+    }
+
+    /**
+     * Display a filtering of the resource.
+     *
+     * @param ProductSearchRequest $request
+     * @return JsonResponse
+     */
+    public function filterProduct(ProductSearchRequest $request): JsonResponse
+    {
+
+        $product = $this->service->filter($request->validated());
+
+        return $this->success(ProductResourceCollection::make($product));
     }
 
     /**
@@ -57,7 +71,19 @@ class ProductController extends Controller
      */
     public function store(ProductStoreRequest $request): JsonResponse
     {
+
+        //$this->authorize('store', Product::class);
+        // $vacancy = Product::create($request->validated());
+        
+        // return new ProductResource($product);
+
+
+        // $product = $this->service->store($request->validated());
+
+        // return $this->created(ProductResource::make($product));
+
         $product = $this->service->store($request->validated());
+
         return $this->created(ProductResource::make($product));
     }
 
@@ -67,13 +93,12 @@ class ProductController extends Controller
      * @param  Product  $product
      * @return JsonResponse
      */
-    public function show(Product $product): JsonResponse
+    public function show(Product $product)//: JsonResponse
     {
-        // $data = $this->service->show($product);
-        // return $this->success($data);
-        $product = $product->load('comments');//hasMany
+        $this->authorize('store', $product); 
+        $data = $this->service->show($product);
 
-        return response()->json(ProductResource::make($product));
+        return $this->success($data);
     }
 
     /**
@@ -85,7 +110,9 @@ class ProductController extends Controller
      */
     public function update(ProductUpdateRequest $request, Product $product): JsonResponse
     {
+        $this->authorize('update', $product);  
         $product = $this->service->update($request->validated(), $product);
+
         return $this->success(ProductResource::make($product));
     }
 
@@ -98,9 +125,9 @@ class ProductController extends Controller
      */
     public function destroy(Product $product): JsonResponse
     {
+        $this->authorize('delete', Product::class);        
         $product = $this->service->destroy($product);
 
-        return response()->json(['success' => true], 200);
-        //return $this->success(ProductResource::make($product));
+        return $this->successDeleted();
     }
 }

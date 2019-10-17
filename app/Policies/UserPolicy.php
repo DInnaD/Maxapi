@@ -65,8 +65,8 @@ class UserPolicy
      * @return mixed
      */
     public function update(User $user)
-    {
-        return $user->isUser();
+    {        
+        return $user->id === \Auth::user()->id;//\Auth::guard('api')->user();//$user->id === \Auth::user()->id;
     }
 
     public function delete(User $user)
